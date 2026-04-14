@@ -5,7 +5,15 @@ import { supabase } from '@/lib/supabase';
 
 export interface Journey { id: string; name: string; color: string; }
 export interface Habit { id: string; name: string; colorClass: string; }
-export interface Task { id: string; text: string; completed: boolean; dueDate?: string | null; journeyId?: string | null; }
+export interface Task { 
+  id: string; 
+  text: string; 
+  completed: boolean; 
+  dueDate?: string | null; 
+  journeyId?: string | null;
+  priority?: string; 
+  tags?: string[];
+}
 
 interface AuraState {
   statusId: string | null;
