@@ -1,60 +1,38 @@
-// components/features/HabitCircle.tsx
 'use client'
-import { useAuraStore } from '@/store/useAuraStore';
-import type { Habit } from '@/store/useAuraStore';
+import { useAuraStore, Habit } from '@/store/useAuraStore';
 import { Sparkles, Pencil, Trash2 } from 'lucide-react';
 
-interface HabitCircleProps {
-  id: string;
-  name: string;
-  colorClass: string;
-}
+export const HabitCircle = ({ habit }: { habit: Habit }) => {
+  const { toggleHabit, removeHabit, openHabitModal } = useAuraStore();
+  const isCompleted = habit.completed_count >= habit.goal_count;
 
-export const HabitCircle = ({ id, name, colorClass }: HabitCircleProps) => {
-  const { completedHabits, toggleHabit, removeHabit, updateHabit } = useAuraStore();
-  const isCompleted = completedHabits.includes(id);
-
-  const colorMap: Record<string, string> = {
+  const colorMap: any = {
     blue: 'border-blue-500 text-blue-500 hover:bg-blue-500/10',
     purple: 'border-purple-500 text-purple-500 hover:bg-purple-500/10',
     emerald: 'border-emerald-500 text-emerald-500 hover:bg-emerald-500/10',
   };
 
-  const completedColorMap: Record<string, string> = {
-    blue: 'bg-blue-500 border-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]',
-    purple: 'bg-purple-500 border-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]',
-    emerald: 'bg-emerald-500 border-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]',
-  };
-
-  const activeClasses = isCompleted ? completedColorMap[colorClass] : colorMap[colorClass];
-
-  // Troque a função handleEdit atual por esta:
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    useAuraStore.getState().openHabitModal(id, name, colorClass as Habit['colorClass']);
+  const completedColor: any = {
+    blue: 'bg-blue-500 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]',
+    purple: 'bg-purple-500 border-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]',
+    emerald: 'bg-emerald-500 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]',
   };
 
   return (
     <div className="flex flex-col items-center gap-2 group relative">
-      {/* Botões de Ação (Aparecem no Hover) */}
       <div className="absolute -top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <button onClick={handleEdit} className="p-1 bg-zinc-800 rounded-full text-zinc-400 hover:text-white border border-zinc-700">
-          <Pencil size={10} />
-        </button>
-        <button onClick={() => removeHabit(id)} className="p-1 bg-zinc-800 rounded-full text-zinc-400 hover:text-red-400 border border-zinc-700">
-          <Trash2 size={10} />
-        </button>
+        <button onClick={() => openHabitModal(habit)} className="p-1.5 bg-zinc-800 rounded-full text-zinc-400 hover:text-white border border-zinc-700"><Pencil size={10} /></button>
+        <button onClick={() => removeHabit(habit.id)} className="p-1.5 bg-zinc-800 rounded-full text-zinc-400 hover:text-red-400 border border-zinc-700"><Trash2 size={10} /></button>
       </div>
 
       <div 
-        onClick={() => toggleHabit(id)}
-        className={`w-14 h-14 rounded-full border-2 flex items-center justify-center transition-all duration-300 active:scale-90 cursor-pointer ${activeClasses}`}
+        onClick={() => toggleHabit(habit.id)}
+        className={`w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center transition-all duration-300 active:scale-90 cursor-pointer ${isCompleted ? completedColor[habit.colorClass] : colorMap[habit.colorClass]}`}
       >
-        <Sparkles size={20} className={isCompleted ? 'scale-110' : 'opacity-80'} />
+        <Sparkles size={16} className={isCompleted ? 'animate-pulse' : 'opacity-50'} />
+        <span className="text-[9px] font-black mt-0.5">{habit.completed_count}/{habit.goal_count}</span>
       </div>
-      <span className={`text-[10px] uppercase tracking-wider font-bold ${isCompleted ? 'text-zinc-200' : 'text-zinc-500'}`}>
-        {name}
-      </span>
+      <span className={`text-[9px] uppercase tracking-wider font-bold ${isCompleted ? 'text-aura-primary' : 'text-zinc-500'}`}>{habit.name}</span>
     </div>
   );
 };

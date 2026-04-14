@@ -1,88 +1,58 @@
-// components/features/HabitModal.tsx
 'use client'
 import { useState, useEffect } from 'react';
 import { useAuraStore, Habit } from '@/store/useAuraStore';
 import { Modal } from '@/components/features/ui/Modal';
 
-const COLOR_OPTIONS: Habit['colorClass'][] = ['blue', 'purple', 'emerald', 'orange', 'rose'];
-
 export const HabitModal = () => {
   const { habitModal, closeHabitModal, addHabit, updateHabit } = useAuraStore();
-  
   const [name, setName] = useState('');
-  const [color, setColor] = useState<Habit['colorClass']>('blue');
+  const [color, setColor] = useState('blue');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [goal, setGoal] = useState(1);
 
-  const isEditing = !!habitModal.habitId;
-
-  // Sincroniza o estado local quando o modal abre
   useEffect(() => {
     if (habitModal.isOpen) {
-      setName(habitModal.currentName);
-      setColor(habitModal.currentColor);
+      setName(habitModal.currentName || '');
+      setColor(habitModal.currentColor || 'blue');
+      setFrequency(habitModal.currentFrequency || 'daily');
+      setGoal(habitModal.currentGoal || 1);
     }
   }, [habitModal]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-
-    if (isEditing && habitModal.habitId) {
-      updateHabit(habitModal.habitId, name.trim(), color);
-    } else {
-      addHabit({ id: Date.now().toString(), name: name.trim(), colorClass: color });
-    }
+    const data = { name, colorClass: color, frequency, goal_count: goal };
+    if (habitModal.habitId) await updateHabit(habitModal.habitId, data);
+    else await addHabit(data);
     closeHabitModal();
   };
 
   return (
-    <Modal isOpen={habitModal.isOpen} onClose={closeHabitModal} title={isEditing ? 'Editar Hábito' : 'Novo Hábito'}>
+    <Modal isOpen={habitModal.isOpen} onClose={closeHabitModal} title={habitModal.habitId ? 'Editar Hábito' : 'Novo Hábito'}>
       <form onSubmit={handleSave} className="space-y-6">
-        
         <div>
-          <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Nome do Hábito</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: Beber Água, Leitura..."
-            className="w-full p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-aura-primary outline-none transition-all text-zinc-900 dark:text-zinc-100"
-            autoFocus
-          />
+          <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Nome</label>
+          <input value={name} onChange={e => setName(e.target.value)} className="w-full p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl outline-none" placeholder="Ex: Meditação" />
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Cor da Aura</label>
-          <div className="flex gap-3">
-            {COLOR_OPTIONS.map(c => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
-                  color === c 
-                    ? `border-${c}-500 bg-${c}-500/20 scale-110 shadow-sm` 
-                    : `border-transparent bg-${c}-500 hover:scale-105 opacity-50 hover:opacity-100`
-                }`}
-              />
-            ))}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Frequência</label>
+            <select value={frequency} onChange={e => setFrequency(e.target.value as any)} className="w-full p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl outline-none text-sm">
+              <option value="daily">Diário</option>
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensal</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Meta (vezes)</label>
+            <input type="number" min="1" value={goal} onChange={e => setGoal(Number(e.target.value))} className="w-full p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl outline-none text-sm" />
           </div>
         </div>
-        
-        <div className="flex justify-end gap-3 pt-2">
-          <button 
-            type="button" 
-            onClick={closeHabitModal}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit"
-            className="px-4 py-2 rounded-lg text-sm font-bold bg-aura-primary text-white hover:bg-aura-secondary transition-colors"
-          >
-            {isEditing ? 'Salvar' : 'Criar Hábito'}
-          </button>
-        </div>
+
+        <button type="submit" className="w-full py-4 bg-aura-primary text-white font-bold rounded-2xl shadow-lg hover:opacity-90 transition-all">
+          Salvar Hábito
+        </button>
       </form>
     </Modal>
   );
